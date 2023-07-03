@@ -1,0 +1,112 @@
+-----------------------------------======VPN-CONNECTION=========------------------------------------------------------------
+create vpc pvt&pub NETWORK one sam regin {aws server and customar,clint server}
+privet-vpc-A --- CIDR 10.10.0.0/16
+public-vpc-B -------- CIDR 172.25.0.0/16
+SUBNET
+pvt-subnet --- CIDR 10.10.0.0/20 ------vpc-A
+pub-subnet ---- CIDR 172.25.0.0/20 -----vpc-B
+creat IGW to ---------- vpc-B and attach it to vpc-B
+route table for vpc-B add destination and target then silect subnet association.
+route table for vpc-A select,,,, subnet association. and ROUTE PROPOGATION ----- enable vpc---privet---- save.
+create tow instance pub&pvt
+SILECT AMI LINUX 2.
+silect instance and edit inbound SG,, silect All ICMP-IPV4 select & save 
+
+
+CREATE CUSTOMAR GATEWAY:------->
+name:-- CG-01
+IP add:--- public ip  in public-instance
+done
+
+
+CREATE VIRTUAL PVT. GATEWAY:------------>///------------>
+NAME :--- vpg-pvt
+Amazon default ans
+save
+silect vpg-pvt and --- acttion attach to vpc-A
+
+
+SITE-TO-SITE VPN CNNECTION OPEAN:-------->
+NAME vpn-connection
+vpg select
+CG-01 select
+routing option :----- static 
+static ip prefix :-- public vpc-ip CIDR {172.25.0.0/16}
+create vpn connection 
+select vpn created -----> downlod configuration 
+vendor---- opeanswan
+downlod-----
+copy public ip with EC2 instance 
+
+
+OPEAN UBUNTU=======>>>
+
+COMMANDS ======///=====>>>
+# ssh -i key name ec2-user@public ip
+sudo su
+# yum install opeanswan -y
+succesfull installed
+# vim /etc/sysctl.conf   {no spaces}
+   net.ipv4.ip_forward = 1
+   net.ipv4.conf.default.rp_filter = 0
+   net.ipv4.conf.default.accept_source_route = 0
+uncomment it 
+# sysctl -p ----> show this is a three line
+# vim /etc/ipsec.conf -----> uncoment last line
+# service network restart --------->  ok -- done
+# vim /etc/ipsec.d/aws.conf
+ conn Tunnel1
+	authby=secret
+	auto=start
+	left=%defaultroute
+	leftid=13.229.207.27
+	right=3.7.166.33
+	type=tunnel
+	ikelifetime=8h
+	keylife=1h
+	phase2alg=aes128-sha1;modp1024
+	ike=aes128-sha1;modp1024
+	auth=esp------------------------------>delete and ''speces down''
+	keyingtries=%forever
+	keyexchange=ike
+	leftsubnet=172.25.0.0/16 -----pub-vpc-B
+	rightsubnet=10.10.0.0/16 ------pvt-vpc-A
+	dpddelay=10
+	dpdtimeout=30
+	dpdaction=restart_by_peer
+
+
+# vim /etc/ipsec.d/aws.secrets
+13.229.207.27 3.7.166.33: PSK "86ly5DCmHI9rQ.Cq0g5TAHPHet9NXk15"
+# systemctl start ipsec
+# systemctl status ipsec ------>  activ (runing)
+# systemctl restart network
+# systectl status network 
+
+check VPN tunnel 1 check ------------>  up
+RTP--vpcA --- check
+
+# ping pvt-ip ----- pvt- instance
+#ping pvt-ip --------pub-instance
+ ""ping successfulll"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
